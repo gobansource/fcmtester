@@ -1,0 +1,6 @@
+@FcmTester.Api_HostAddress = http://localhost:5144
+
+GET {{FcmTester.Api_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

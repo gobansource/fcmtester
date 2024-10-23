@@ -24,7 +24,10 @@ const FcmTester: React.FC = () => {
   const [responseHistory, setResponseHistory] = useState<ResponseEntry[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [totalResponses, setTotalResponses] = useState<number>(0);
-  const [bundleId, setBundleId] = useState<string>("com.app");
+  const [bundleId, setBundleId] = useState<string>(() => {
+    // Initialize bundleId from localStorage or use default
+    return localStorage.getItem("bundleId") || "com.app";
+  });
 
   useEffect(() => {
     const storedTokens = localStorage.getItem("deviceTokens");
@@ -43,6 +46,11 @@ const FcmTester: React.FC = () => {
       }, 300);
     }
   }, [responseHistory]);
+
+  // Add new useEffect for bundleId persistence
+  useEffect(() => {
+    localStorage.setItem("bundleId", bundleId);
+  }, [bundleId]);
 
   const saveTokensToLocalStorage = (tokens: DeviceToken[]) => {
     localStorage.setItem("deviceTokens", JSON.stringify(tokens));
@@ -272,8 +280,8 @@ const FcmTester: React.FC = () => {
             className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
           />
           <p className="mt-2 p-2 bg-yellow-50 dark:bg-yellow-900 border border-yellow-200 dark:border-yellow-800 rounded-md text-sm text-yellow-800 dark:text-yellow-200 italic">
-            Note: This is your iOS app's bundle identifier used for APNS
-            configuration.
+            Note: This is your iOS app's bundle identifier used for APNS configuration. 
+            It will be saved in your browser's local storage.
           </p>
         </div>
 

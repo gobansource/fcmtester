@@ -78,6 +78,20 @@ const FcmTester: React.FC = () => {
     }
   };
 
+  const formatResponse = (responseData: any) => {
+    return {
+      success: responseData.success,
+      details: {
+        ...(responseData.success ? {
+          messageId: responseData.messageId,
+          message: responseData.message // Include the message from the response
+        } : {
+          error: responseData.error
+        })
+      }
+    };
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!privateKeyFile) {
@@ -108,7 +122,7 @@ const FcmTester: React.FC = () => {
       }
 
       const responseData = await response.json();
-      addResponse(JSON.stringify(responseData, null, 2));
+      addResponse(JSON.stringify(formatResponse(responseData), null, 2));
     } catch (error: unknown) {
       addResponse(
         `Error: ${error instanceof Error ? error.message : String(error)}`
@@ -128,9 +142,6 @@ const FcmTester: React.FC = () => {
 
   return (
     <div className="bg-white dark:bg-gray-800 shadow-md rounded-lg p-6">
-      <h1 className="text-3xl font-bold mb-6 text-center text-gray-800 dark:text-white">
-        Firebase Cloud Messaging Tester
-      </h1>
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
           <label

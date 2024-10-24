@@ -30,7 +30,6 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-app.UseCors("CorsPolicy");
 
 // Serve static files and use default files
 app.UseDefaultFiles();
@@ -103,10 +102,24 @@ app.MapPost("/api/send-fcm", async (HttpRequest request, ILogger<Program> logger
                 return Results.BadRequest("Invalid data JSON format");
             }
         }
+
         var response = await FirebaseMessaging.DefaultInstance.SendAsync(fcmMessage);
         logger.LogInformation($"FCM message sent successfully. Message ID: {response}");
 
-        return Results.Ok(new { success = true, response = response });
+        // Serialize the entire FCM message
+        var options = new JsonSerializerOptions
+        {
+            WriteIndented = true,
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+        };
+        var serializedMessage = JsonSerializer.Serialize(fcmMessage, options);
+        logger.LogInformation(serializedMessage);
+        return Results.Ok(new
+        {
+            success = true,
+            messageId = response,
+            message = JsonSerializer.Deserialize<object>(serializedMessage) // Deserialize to clean up the format
+        });
     }
     catch (Exception ex)
     {
@@ -115,7 +128,6 @@ app.MapPost("/api/send-fcm", async (HttpRequest request, ILogger<Program> logger
     }
     finally
     {
-        // Delete the Firebase app instance for this request, I don't want the credentials to be cached.
         FirebaseApp.DefaultInstance?.Delete();
     }
 })

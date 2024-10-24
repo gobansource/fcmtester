@@ -191,6 +191,22 @@ const FcmTester: React.FC = () => {
     ]);
   };
 
+  // Add this helper function for syntax highlighting
+  const formatJson = (obj: any) => {
+    const jsonString = JSON.stringify(obj, null, 2);
+    return jsonString.split('\n').map((line, i) => {
+      // Add colors to keys (before colon)
+      line = line.replace(/"([^"]+)":/g, '<span class="text-purple-600 dark:text-purple-400">\"$1\"</span>:');
+      // Add colors to string values (between quotes)
+      line = line.replace(/: "([^"]+)"/g, ': <span class="text-green-600 dark:text-green-400">\"$1\"</span>');
+      // Add colors to numbers
+      line = line.replace(/: (\d+)/g, ': <span class="text-blue-600 dark:text-blue-400">$1</span>');
+      // Add colors to booleans and null
+      line = line.replace(/: (true|false|null)/g, ': <span class="text-yellow-600 dark:text-yellow-400">$1</span>');
+      return line;
+    }).join('\n');
+  };
+
   return (
     <div className="bg-white dark:bg-gray-800 shadow-md rounded-lg p-6">
       <form onSubmit={handleSubmit} className="space-y-4">
@@ -391,18 +407,24 @@ const FcmTester: React.FC = () => {
                       <h4 className="text-sm font-semibold text-green-800 dark:text-green-200 mb-2">
                         Success
                       </h4>
-                      <pre className="whitespace-pre-wrap break-words text-sm text-green-700 dark:text-green-300 overflow-x-auto">
-                        {JSON.stringify(response.result, null, 2)}
-                      </pre>
+                      <pre 
+                        className="whitespace-pre-wrap break-words text-sm font-mono overflow-x-auto"
+                        dangerouslySetInnerHTML={{ 
+                          __html: formatJson(response.result)
+                        }}
+                      />
                     </div>
 
                     <div className="p-3 bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800 rounded-md">
                       <h4 className="text-sm font-semibold text-blue-800 dark:text-blue-200 mb-2">
                         Sent Payload
                       </h4>
-                      <pre className="whitespace-pre-wrap break-words text-sm text-blue-700 dark:text-blue-300 overflow-x-auto">
-                        {JSON.stringify(response.payload, null, 2)}
-                      </pre>
+                      <pre 
+                        className="whitespace-pre-wrap break-words text-sm font-mono overflow-x-auto"
+                        dangerouslySetInnerHTML={{ 
+                          __html: formatJson(response.payload)
+                        }}
+                      />
                     </div>
                   </div>
                 ) : (
@@ -410,7 +432,7 @@ const FcmTester: React.FC = () => {
                     <h4 className="text-sm font-semibold text-red-800 dark:text-red-200 mb-2">
                       Error
                     </h4>
-                    <pre className="whitespace-pre-wrap break-words text-sm text-red-700 dark:text-red-300 overflow-x-auto">
+                    <pre className="whitespace-pre-wrap break-words text-sm font-mono text-red-700 dark:text-red-300 overflow-x-auto">
                       {response.error}
                     </pre>
                   </div>

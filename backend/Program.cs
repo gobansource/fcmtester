@@ -52,13 +52,22 @@ app.MapPost("/api/send-fcm", async (HttpRequest request, ILogger<Program> logger
         return Results.BadRequest("Missing required fields");
     }
 
+    FirebaseApp app = null;
     try
     {
         using var stream = privateKeyFile.OpenReadStream();
         var credential = GoogleCredential.FromStream(stream)
             .CreateScoped("https://www.googleapis.com/auth/firebase.messaging");
 
-        var firebaseApp = FirebaseApp.Create(new AppOptions { Credential = credential });
+        // Create a unique name for this Firebase instance
+        var instanceId = Guid.NewGuid().ToString();
+        app = FirebaseApp.Create(new AppOptions
+        {
+            Credential = credential
+        }, instanceId);
+
+        // Get FirebaseMessaging instance for this specific app
+        var messaging = FirebaseMessaging.GetMessaging(app);
 
         var fcmMessage = new Message()
         {
@@ -103,22 +112,22 @@ app.MapPost("/api/send-fcm", async (HttpRequest request, ILogger<Program> logger
             }
         }
 
-        var response = await FirebaseMessaging.DefaultInstance.SendAsync(fcmMessage);
+        var response = await messaging.SendAsync(fcmMessage);
         logger.LogInformation($"FCM message sent successfully. Message ID: {response}");
 
-        // Serialize the entire FCM message
         var options = new JsonSerializerOptions
         {
             WriteIndented = true,
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase
         };
         var serializedMessage = JsonSerializer.Serialize(fcmMessage, options);
-        logger.LogInformation(serializedMessage);
+
+
         return Results.Ok(new
         {
             success = true,
             messageId = response,
-            message = JsonSerializer.Deserialize<object>(serializedMessage) // Deserialize to clean up the format
+            message = JsonSerializer.Deserialize<object>(serializedMessage)
         });
     }
     catch (Exception ex)
@@ -128,7 +137,12 @@ app.MapPost("/api/send-fcm", async (HttpRequest request, ILogger<Program> logger
     }
     finally
     {
-        FirebaseApp.DefaultInstance?.Delete();
+        // Clean up the Firebase instance
+        if (app != null)
+        {
+            app.Delete();
+            logger.LogInformation($"Cleaned up Firebase instance");
+        }
     }
 })
 .WithName("SendFcm")

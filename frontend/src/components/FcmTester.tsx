@@ -79,27 +79,56 @@ const FcmTester: React.FC = () => {
   };
 
   const formatResponse = (responseData: any) => {
-    return {
-      success: responseData.success,
-      details: {
-        ...(responseData.success ? {
-          messageId: responseData.messageId,
-          message: responseData.message // Include the message from the response
-        } : {
-          error: responseData.error
-        })
+    try {
+      // If it's already a string (error message), wrap it in an error object
+      if (typeof responseData === "string") {
+        return {
+          success: false,
+          error: responseData,
+        };
       }
-    };
+
+      if (!responseData.success) {
+        return {
+          success: false,
+          error: responseData.error || "Unknown error occurred",
+        };
+      }
+
+      return {
+        success: true,
+        result: {
+          messageId: responseData.messageId,
+        },
+        payload: responseData.message,
+      };
+    } catch (err) {
+      console.error("Error formatting response:", err);
+      return {
+        success: false,
+        error: "Failed to parse server response",
+      };
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!privateKeyFile) {
-      addResponse("Error: Please select a private key file");
+      addResponse(
+        JSON.stringify({
+          success: false,
+          error: "Please select a private key file",
+        })
+      );
       return;
     }
     if (selectedTokenIndex === -1) {
-      addResponse("Error: Please select a device token");
+      addResponse(
+        JSON.stringify({
+          success: false,
+          error: "Please select a device token",
+        })
+      );
       return;
     }
 
@@ -117,15 +146,37 @@ const FcmTester: React.FC = () => {
         body: formData,
       });
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+      let responseData;
+      const contentType = response.headers.get("content-type");
+      if (contentType && contentType.includes("application/json")) {
+        responseData = await response.json();
+      } else {
+        // Handle non-JSON responses
+        const textResponse = await response.text();
+        responseData = {
+          success: false,
+          error: textResponse || `HTTP error! status: ${response.status}`,
+        };
       }
 
-      const responseData = await response.json();
+      if (!response.ok) {
+        // If the server returns an error status
+        if (typeof responseData === "object" && responseData.error) {
+          throw new Error(responseData.error);
+        } else {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+      }
+
       addResponse(JSON.stringify(formatResponse(responseData), null, 2));
     } catch (error: unknown) {
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
       addResponse(
-        `Error: ${error instanceof Error ? error.message : String(error)}`
+        JSON.stringify({
+          success: false,
+          error: errorMessage,
+        })
       );
     } finally {
       setIsLoading(false);
@@ -291,8 +342,8 @@ const FcmTester: React.FC = () => {
             className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
           />
           <p className="mt-2 p-2 bg-yellow-50 dark:bg-yellow-900 border border-yellow-200 dark:border-yellow-800 rounded-md text-sm text-yellow-800 dark:text-yellow-200 italic">
-            Note: This is your iOS app's bundle identifier used for APNS configuration. 
-            It will be saved in your browser's local storage.
+            Note: This is your iOS app's bundle identifier used for APNS
+            configuration. It will be saved in your browser's local storage.
           </p>
         </div>
 
@@ -314,26 +365,59 @@ const FcmTester: React.FC = () => {
           <h2 className="text-xl font-semibold text-gray-800 dark:text-white">
             Response History:
           </h2>
-          {responseHistory.map((entry, index) => (
-            <div
-              key={entry.timestamp.getTime()}
-              className={`p-4 bg-gray-100 dark:bg-gray-700 rounded-md transition-all duration-300 ${
-                entry.isNew ? "animate-pulse bg-blue-100 dark:bg-blue-900" : ""
-              }`}
-            >
-              <div className="flex justify-between items-center mb-2">
-                <h3 className="text-lg font-semibold text-gray-800 dark:text-white">
-                  Response {totalResponses - index}
-                </h3>
-                <span className="text-sm text-gray-500 dark:text-gray-400">
-                  {entry.timestamp.toLocaleString()}
-                </span>
+          {responseHistory.map((entry, index) => {
+            const response = JSON.parse(entry.content);
+            return (
+              <div
+                key={entry.timestamp.getTime()}
+                className={`p-4 bg-gray-100 dark:bg-gray-700 rounded-md transition-all duration-300 ${
+                  entry.isNew
+                    ? "animate-pulse bg-blue-100 dark:bg-blue-900"
+                    : ""
+                }`}
+              >
+                <div className="flex justify-between items-center mb-2">
+                  <h3 className="text-lg font-semibold text-gray-800 dark:text-white">
+                    Response {totalResponses - index}
+                  </h3>
+                  <span className="text-sm text-gray-500 dark:text-gray-400">
+                    {entry.timestamp.toLocaleString()}
+                  </span>
+                </div>
+
+                {response.success ? (
+                  <div className="space-y-4">
+                    <div className="p-3 bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-800 rounded-md">
+                      <h4 className="text-sm font-semibold text-green-800 dark:text-green-200 mb-2">
+                        Success
+                      </h4>
+                      <pre className="whitespace-pre-wrap break-words text-sm text-green-700 dark:text-green-300 overflow-x-auto">
+                        {JSON.stringify(response.result, null, 2)}
+                      </pre>
+                    </div>
+
+                    <div className="p-3 bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800 rounded-md">
+                      <h4 className="text-sm font-semibold text-blue-800 dark:text-blue-200 mb-2">
+                        Sent Payload
+                      </h4>
+                      <pre className="whitespace-pre-wrap break-words text-sm text-blue-700 dark:text-blue-300 overflow-x-auto">
+                        {JSON.stringify(response.payload, null, 2)}
+                      </pre>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="p-3 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-md">
+                    <h4 className="text-sm font-semibold text-red-800 dark:text-red-200 mb-2">
+                      Error
+                    </h4>
+                    <pre className="whitespace-pre-wrap break-words text-sm text-red-700 dark:text-red-300 overflow-x-auto">
+                      {response.error}
+                    </pre>
+                  </div>
+                )}
               </div>
-              <pre className="whitespace-pre-wrap break-words text-sm text-gray-600 dark:text-gray-300 overflow-x-auto">
-                {entry.content}
-              </pre>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>

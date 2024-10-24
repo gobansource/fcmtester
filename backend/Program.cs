@@ -35,6 +35,37 @@ app.UseHttpsRedirection();
 app.UseDefaultFiles();
 app.UseStaticFiles();
 
+// Add these helper methods before the app.MapPost endpoint
+ApnsConfig CreateBackgroundApnsConfig(string bundleId)
+{
+    return new ApnsConfig()
+    {
+        Aps = new Aps()
+        {
+            ContentAvailable = true,
+        },
+        Headers = new Dictionary<string, string>()
+        {
+            { "apns-priority", "5" },
+            { "apns-push-type", "background" },
+            { "apns-token", bundleId }
+        }
+    };
+}
+
+ApnsConfig CreateAlertApnsConfig(string bundleId)
+{
+    return new ApnsConfig()
+    {
+        Headers = new Dictionary<string, string>()
+        {
+            { "apns-priority", "10" },
+            { "apns-push-type", "alert" },
+            { "apns-token", bundleId }
+        }
+    };
+}
+
 app.MapPost("/api/send-fcm", async (HttpRequest request, ILogger<Program> logger) =>
 {
     logger.LogInformation("Processing FCM send request");
@@ -75,42 +106,41 @@ app.MapPost("/api/send-fcm", async (HttpRequest request, ILogger<Program> logger
             Token = deviceToken
         };
 
-        if (!string.IsNullOrEmpty(message))
+        // Determine which case we're handling
+        bool hasMessage = !string.IsNullOrEmpty(message);
+        bool hasData = !string.IsNullOrEmpty(data);
+
+        // Set notification if message exists (Cases 1 & 3)
+        if (hasMessage)
         {
             fcmMessage.Notification = new Notification()
             {
                 Title = notificationTitle,
                 Body = message
             };
+
         }
-
-        var apns = new ApnsConfig()
-        {
-            Aps = new Aps()
-            {
-                ContentAvailable = true,
-            },
-            Headers = new Dictionary<string, string>()
-            {
-                { "apns-priority", "5" },
-                { "apns-push-type", "background" },
-                { "apns-token", bundleId }
-            }
-        };
-
-        if (!string.IsNullOrEmpty(data))
+        if (hasData)
         {
             try
             {
                 var dataDict = JsonSerializer.Deserialize<Dictionary<string, string>>(data);
                 fcmMessage.Data = dataDict;
-                fcmMessage.Apns = apns;
+
             }
             catch (JsonException ex)
             {
                 logger.LogError(ex, "Error parsing data JSON");
                 return Results.BadRequest("Invalid data JSON format");
             }
+        }
+        if (hasMessage)
+        {
+            fcmMessage.Apns = CreateAlertApnsConfig(bundleId);
+        }
+        else if (hasData)
+        {
+            fcmMessage.Apns = CreateBackgroundApnsConfig(bundleId);
         }
 
         var response = await messaging.SendAsync(fcmMessage);

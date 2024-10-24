@@ -44,7 +44,8 @@ app.MapPost("/api/send-fcm", async (HttpRequest request, ILogger<Program> logger
     var deviceToken = form["deviceToken"];
     var message = form["message"];
     var data = form["data"].FirstOrDefault();
-    var bundleId = form["bundleId"].FirstOrDefault() ?? "";
+    var bundleId = form["bundleId"].FirstOrDefault();
+    var notificationTitle = form["notificationTitle"].FirstOrDefault();
 
     if (privateKeyFile == null || string.IsNullOrEmpty(deviceToken))
     {
@@ -78,7 +79,7 @@ app.MapPost("/api/send-fcm", async (HttpRequest request, ILogger<Program> logger
         {
             fcmMessage.Notification = new Notification()
             {
-                Title = "FCM Test Message",
+                Title = notificationTitle,
                 Body = message
             };
         }

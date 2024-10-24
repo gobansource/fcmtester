@@ -28,6 +28,7 @@ const FcmTester: React.FC = () => {
     // Initialize bundleId from localStorage or use default
     return localStorage.getItem("bundleId") || "com.app";
   });
+  const [notificationTitle, setNotificationTitle] = useState("");
 
   useEffect(() => {
     const storedTokens = localStorage.getItem("deviceTokens");
@@ -137,6 +138,7 @@ const FcmTester: React.FC = () => {
     formData.append("privateKeyFile", privateKeyFile);
     formData.append("deviceToken", deviceTokens[selectedTokenIndex].token);
     formData.append("bundleId", bundleId);
+    formData.append("notificationTitle", notificationTitle); // Add this line
     if (message) formData.append("message", message);
     if (data) formData.append("data", data);
 
@@ -194,17 +196,32 @@ const FcmTester: React.FC = () => {
   // Add this helper function for syntax highlighting
   const formatJson = (obj: any) => {
     const jsonString = JSON.stringify(obj, null, 2);
-    return jsonString.split('\n').map((line, i) => {
-      // Add colors to keys (before colon)
-      line = line.replace(/"([^"]+)":/g, '<span class="text-purple-600 dark:text-purple-400">\"$1\"</span>:');
-      // Add colors to string values (between quotes)
-      line = line.replace(/: "([^"]+)"/g, ': <span class="text-green-600 dark:text-green-400">\"$1\"</span>');
-      // Add colors to numbers
-      line = line.replace(/: (\d+)/g, ': <span class="text-blue-600 dark:text-blue-400">$1</span>');
-      // Add colors to booleans and null
-      line = line.replace(/: (true|false|null)/g, ': <span class="text-yellow-600 dark:text-yellow-400">$1</span>');
-      return line;
-    }).join('\n');
+    return jsonString
+      .split("\n")
+      .map((line, i) => {
+        // Add colors to keys (before colon)
+        line = line.replace(
+          /"([^"]+)":/g,
+          '<span class="text-purple-600 dark:text-purple-400">"$1"</span>:'
+        );
+        // Add colors to string values (between quotes)
+        line = line.replace(
+          /: "([^"]+)"/g,
+          ': <span class="text-green-600 dark:text-green-400">"$1"</span>'
+        );
+        // Add colors to numbers
+        line = line.replace(
+          /: (\d+)/g,
+          ': <span class="text-blue-600 dark:text-blue-400">$1</span>'
+        );
+        // Add colors to booleans and null
+        line = line.replace(
+          /: (true|false|null)/g,
+          ': <span class="text-yellow-600 dark:text-yellow-400">$1</span>'
+        );
+        return line;
+      })
+      .join("\n");
   };
 
   return (
@@ -311,6 +328,22 @@ const FcmTester: React.FC = () => {
 
         <div>
           <label
+            htmlFor="notificationTitle"
+            className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+          >
+            Notification Title:
+          </label>
+          <input
+            type="text"
+            id="notificationTitle"
+            value={notificationTitle}
+            onChange={(e) => setNotificationTitle(e.target.value)}
+            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+          />
+        </div>
+
+        <div>
+          <label
             htmlFor="message"
             className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
           >
@@ -407,10 +440,10 @@ const FcmTester: React.FC = () => {
                       <h4 className="text-sm font-semibold text-green-800 dark:text-green-200 mb-2">
                         Success
                       </h4>
-                      <pre 
+                      <pre
                         className="whitespace-pre-wrap break-words text-sm font-mono overflow-x-auto"
-                        dangerouslySetInnerHTML={{ 
-                          __html: formatJson(response.result)
+                        dangerouslySetInnerHTML={{
+                          __html: formatJson(response.result),
                         }}
                       />
                     </div>
@@ -419,10 +452,10 @@ const FcmTester: React.FC = () => {
                       <h4 className="text-sm font-semibold text-blue-800 dark:text-blue-200 mb-2">
                         Sent Payload
                       </h4>
-                      <pre 
+                      <pre
                         className="whitespace-pre-wrap break-words text-sm font-mono overflow-x-auto"
-                        dangerouslySetInnerHTML={{ 
-                          __html: formatJson(response.payload)
+                        dangerouslySetInnerHTML={{
+                          __html: formatJson(response.payload),
                         }}
                       />
                     </div>

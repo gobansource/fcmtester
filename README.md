@@ -10,7 +10,7 @@ FCM Tester helps developers validate notification delivery, configure payload st
 
 ## Screenshot
 
-![FCM Tester Screenshot](https://github.com/gobansource/fcmtester/blob/main/fcmtester-screenshot.png)
+![FCM Tester Screenshot](https://raw.githubusercontent.com/gobansource/fcmtester/refs/heads/main/fcmtester-screenshot.png)
 
 _FCM Tester interface showing the notification configuration panel and response history._
 

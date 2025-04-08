@@ -10,7 +10,7 @@ FCM Tester helps developers validate notification delivery, configure payload st
 
 ## Screenshot
 
-![FCM Tester Screenshot](fcmtester-screenshot.png)
+![FCM Tester Screenshot](https://github.com/gobansource/fcmtester/blob/main/fcmtester-screenshot.png)
 
 _FCM Tester interface showing the notification configuration panel and response history._
 
@@ -105,7 +105,7 @@ Contributions are welcome! Feel free to open issues or submit pull requests.
 
 ## License
 
-This project is licensed under the terms of the MIT license. See the [LICENSE](LICENSE) file for details.
+This project is licensed under the terms of the MIT license. See the [LICENSE](https://github.com/gobansource/fcmtester/blob/main/LICENSE) file for details.
 
 ## Acknowledgments
 

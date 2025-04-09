@@ -71,5 +71,5 @@ jobs:
           workflow: ${{ secrets.DEPLOY_WORKFLOW }}
           repo: ${{ secrets.DEPLOY_WORKFLOW_REPO }}
           ref: main
-          token: ${{ secrets.PAT_REPO }}
+          token: ${{ secrets.PAT_COMPOSE_WORKFLOW_DISPATCH }}
           inputs: '{ "servicename": "fcmtester","env":"prd" }'

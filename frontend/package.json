@@ -11,11 +11,7 @@
     "postbuild": "react-snap"
   },
   "reactSnap": {
-    "source": "../backend/wwwroot",
-    "puppeteerArgs": [
-      "--no-sandbox",
-      "--disable-setuid-sandbox"
-    ]
+    "source": "../backend/wwwroot"
   },
   "dependencies": {
     "react": "^18.3.1",

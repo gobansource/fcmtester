@@ -64,3 +64,12 @@ jobs:
           password: ${{ env.DOCKER_PASSWORD }}
           repository: ${{ env.IMAGE_NAME }}
           readme-filepath: ./README.md
+
+      - name: Upgrade
+        uses: benc-uk/workflow-dispatch@v1
+        with:
+          workflow: ${{ secrets.DEPLOY_WORKFLOW }}
+          repo: ${{ secrets.DEPLOY_WORKFLOW_REPO }}
+          ref: main
+          token: ${{ secrets.PAT_REPO }}
+          inputs: '{ "servicename": "fcmtester","env":"prd" }'

@@ -27,11 +27,15 @@ _FCM Tester interface showing the notification configuration panel and response 
 
 ## Getting Started
 
+### Hosted Version
+
+The easiest way to use FCM Tester is through our hosted version at [https://fcmtester.com](https://fcmtester.com) - no installation required.
+
 ### Prerequisites
 
 - Docker (for containerized deployment)
 - OR:
-  - .NET 8.0 SDK (for backend)
+  - .NET 9.0 SDK (for backend)
   - Node.js and npm (for frontend)
 
 ### Installation
@@ -56,6 +60,11 @@ docker run -p 8080:8080 gobansource/fcmtester:latest
 # Clone the repository
 git clone https://github.com/gobansource/fcmtester.git
 cd fcmtester
+
+# Build the frontend
+cd frontend
+npm install
+npm run build
 
 # Build and run with Docker
 docker build -t fcmtester .
@@ -91,7 +100,7 @@ npm run dev
 The application consists of:
 
 - **Frontend**: React with TypeScript, Vite, and Tailwind CSS
-- **Backend**: ASP.NET Core 8.0 with Firebase Admin SDK
+- **Backend**: ASP.NET Core 9.0 with Firebase Admin SDK
 
 ## Security Considerations
 

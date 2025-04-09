@@ -1,11 +1,3 @@
-# Build frontend
-FROM node:20-alpine AS frontend-build
-WORKDIR /app/frontend
-COPY frontend/package*.json ./
-RUN npm ci
-COPY frontend/ ./
-RUN npm run build
-
 # Build backend
 FROM --platform=$BUILDPLATFORM mcr.microsoft.com/dotnet/sdk:9.0-noble AS backend-build
 ARG COMMIT_SHA=unknown
@@ -13,7 +5,8 @@ WORKDIR /app/backend
 COPY backend/*.csproj ./
 RUN dotnet restore
 COPY backend/ ./
-COPY --from=frontend-build /app/backend/wwwroot ./wwwroot
+# Frontend assets should be built in the workflow and available here
+COPY backend/wwwroot ./wwwroot
 RUN dotnet publish -c Release -o out /p:GitCommit=$COMMIT_SHA
 
 # Final image

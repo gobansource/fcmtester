@@ -15,3 +15,13 @@ WORKDIR /app
 COPY --from=backend-build /app/backend/out ./
 EXPOSE 8080
 ENTRYPOINT ["dotnet", "FcmTester.Api.dll"]
+
+LABEL org.opencontainers.image.source=https://github.com/gobansource/fcmtester
+LABEL org.opencontainers.image.description="FCM Data Only Messages, Push Notifications Tester"
+LABEL org.opencontainers.image.url=https://fcmtester.com
+LABEL org.opencontainers.image.documentation=https://github.com/gobansource/fcmtester/blob/main/README.md
+LABEL org.opencontainers.image.vendor="Goban Source - https://gobansource.com"
+LABEL org.opencontainers.image.licenses=MIT
+LABEL org.opencontainers.image.authors="Goban Source <hello@gobansource.com>"
+LABEL org.opencontainers.image.title="FCM Data Only Messages, Push Notifications Tester"
+

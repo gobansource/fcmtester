@@ -1,12 +1,17 @@
 # FCM Tester
 
-A developer tool for testing Firebase Cloud Messaging (FCM) push notifications with a clean, intuitive interface.
+A developer tool for testing Firebase Cloud Messaging (FCM) push notifications to iOs and Android devices.
+Supports both **Data Only Messages** and **Notification Messages**.
 
 ![License](https://img.shields.io/github/license/gobansource/fcmtester)
 
 ## Overview
 
 FCM Tester helps developers validate notification delivery, configure payload structures, and test various notification types without requiring a complete app deployment.
+Key Features that not available in other FCM Tester tools:
+
+- Supports **Data Only Messages**
+- FCM request payload and response payload are clearly visible
 
 ## Screenshot
 
